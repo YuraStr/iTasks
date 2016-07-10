@@ -10,25 +10,27 @@
     = javascript_include_tag "http://html5shim.googlecode.com/svn/trunk/html5.js"
     = stylesheet_link_tag "application", :media => "all"
     = javascript_include_tag "application"
-    %body
+    %body{:style => "background-image: url('http://www.msi.upd.edu.ph/~msilibrary/wp-content/uploads/2013/09/silver-light-blue-wave-abstract-backgrounds-powerpoint.jpg'); background-size: 100%"}
     .container
-      .content
+      -if user_signed_in?
+        .div{:align => "right", :style => "font-size: 14px; font-weight: bold"}
+          =link_to "Sign out", destroy_user_session_path, :method => :delete
+      -else
+      .content{:align => "center"}
         .well.sidebar-nav
-          %ul.nav.nav-list
           - if !user_signed_in?
             %h2 Sign In
-            %li= link_to "Facebook", user_facebook_omniauth_authorize_path
-            %li= link_to "Vkontakte", user_vkontakte_omniauth_authorize_path
-            %li= link_to "Twitter", user_twitter_omniauth_authorize_path
+            %br
+            =link_to image_tag("http://www.underconsideration.com/brandnew/archives/facebook_2015_logo_detail.png", size:"180x53"), user_facebook_omniauth_authorize_path
+            %br
+            =link_to image_tag("http://abali.ru/wp-content/uploads/2013/11/vk_logo.png", size:"180x50"),  user_vkontakte_omniauth_authorize_path
+            %br 
+            =link_to image_tag("https://i.kinja-img.com/gawker-media/image/upload/f1b5lfuzmwvzs7nslwbn.jpg", size:"180x70"), user_twitter_omniauth_authorize_path
           %ul.nav
           - if user_signed_in?
             .span9
               = yield
             .span3
-            %li= link_to "#{current_user.username} (#{current_user.provider})", current_user.url
-            %li= link_to "Sign out", destroy_user_session_path, :method => :delete
-
-
-
-%footer
-© Company 2016
+            %br
+            =link_to "Current user: #{current_user.username} (#{current_user.provider})", current_user.url
+            
