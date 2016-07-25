@@ -10,6 +10,6 @@ $(document).ready(function(){
         // our rails app
         paramName: "upload[image]",
         // show remove links on each image upload
-        addRemoveLinks: true
+        addRemoveLinks: false
     });
 });

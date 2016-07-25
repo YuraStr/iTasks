@@ -1,10 +1,11 @@
 <p id="notice"><%= notice %></p>
-<% @user.uploads.all.each do |uploads| %>
-    <%= cl_image_tag(uploads["public_id"],
+<% @user.uploads.each do |upload| %>
+    <a onclick="return launchEditor('<%= upload["public_id"] %>', '<%= "http://res.cloudinary.com/task4testcloud/image/upload/v1468944275/" + upload["public_id"].to_s + "." + upload["image_content_type"][6..-1].to_s %>')">
+    <%= cl_image_tag(upload["public_id"],
+                     :id => upload["public_id"],
                      :height => 150,
-                     :width => 150,
                      :crop => :fill)
-    %>
+    %></a>
 <% end %>
 
 <%= form_for([@user, @user.uploads.build], html: { multipart: true, class: "dropzone"}) do |f|  %>
@@ -13,125 +14,41 @@
       <%= f.submit "Upload" %>
     </div>
 <% end %><br>
-<canvas id="c" width="600" height="600" class="lower-canvas" style="position:absolute; width:600px;height:600px; left:0px;top: 0px; -webkit-user-select:none;border:dashed "></canvas>
-<script>
+<% if user_signed_in? %>
+  <%= link_to 'Log out', destroy_user_session_path %>
+<% end %>
 
-            /*fabric.Object.prototype.transparentCorners = false;
-            var $ = function (id) { return document.getElementById(id) };
-            $('brightness-value').style.opacity = 0;
-            $('remove-white-ranges').style.opacity = 0;
-            $('noise-value').style.opacity = 0;
+<script type="text/javascript" src="http://feather.aviary.com/imaging/v3/editor.js"></script>
+<script type="text/javascript">
+    var featherEditor = new Aviary.Feather({
+        apiKey: '0728ddae97b84c04bcd6adf4ef7fd5dc',
+        apiVersion: 3,
+        theme: 'light',
+        tools: 'all',
+        appendTo: '',
+        onSave: function(imageID, newURL) {
+            var img = document.getElementById(imageID);
+            img.src = newURL;
 
-            function applyFilter(index, filter) {
-                var obj = canvas.getActiveObject();
-                obj.filters[index] = filter;
-                obj.applyFilters(canvas.renderAll.bind(canvas));
-            }
-
-            function applyFilterValue(index, prop, value) {
-                var obj = canvas.getActiveObject();
-                if (obj.filters[index]) {
-                    obj.filters[index][prop] = value;
-                    obj.applyFilters(canvas.renderAll.bind(canvas));
-                }
-            }*/
-
-            //fabric.Object.prototype.padding = 5;
-            //fabric.Object.prototype.transparentCorners = false;   
-
-            var canvas = new fabric.Canvas('c');
-            /*canvas.on({
-                'object:selected': function () {
-                    fabric.util.toArray(document.getElementsByTagName('input'))
-                                        .forEach(function (el) { el.disabled = false; })
-
-                    var filters = ['grayscale', 'invert', 'remove-white', 'sepia', 'sepia2',
-                                    'brightness', 'noise'];
-
-                    for (var i = 0; i < filters.length; i++) {
-                        $(filters[i]).checked = canvas.getActiveObject().filters[i];
-                    }
-                },
-                'selection:cleared': function () {
-                    fabric.util.toArray(document.getElementsByTagName('input'))
-                                        .forEach(function (el) { el.disabled = true; })
-                }
-            });*/
-
-            fabric.Image.fromURL('http://res.cloudinary.com/task4testcloud/image/upload/v1468939690/k9qvpqttbynziprhxbms.png', function (img) {
-                var oImg = img.set({ left: 50, top: 100 }).scale(0.9);
-                canvas.add(oImg).renderAll();
-                canvas.setActiveObject(oImg);
-
-            }, { crossOrigin: "Anonymous" });
-
-            /*$('btnSave').onclick = function () {
-                canvas.item(0)['hasControls'] = false;
-                canvas.item(0)['hasBorders'] = false;
-                canvas.renderAll();
-            };
-
-            $('grayscale').onclick = function () {
-                applyFilter(0, this.checked && new f.Grayscale());
-            };
-            $('invert').onclick = function () {
-                applyFilter(1, this.checked && new f.Invert());
-            };
-            $('remove-white').onclick = function () {
-
-                if (this.checked) {
-                    $('remove-white-ranges').style.opacity = 1;
-                }
-                else {
-                    $('remove-white-ranges').style.opacity = 0;
-                }
-
-                applyFilter(2, this.checked && new f.RemoveWhite({
-                    threshold: $('remove-white-threshold').value,
-                    distance: $('remove-white-distance').value
-                }));
-            };
-            $('remove-white-threshold').onchange = function () {
-                applyFilterValue(2, 'threshold', this.value);
-            };
-            $('remove-white-distance').onchange = function () {
-                applyFilterValue(2, 'distance', this.value);
-            };
-            $('sepia').onclick = function () {
-                applyFilter(3, this.checked && new f.Sepia());
-            };
-            $('sepia2').onclick = function () {
-                applyFilter(4, this.checked && new f.Sepia2());
-            };
-            $('brightness').onclick = function () {
-                if (this.checked) {
-                    $('brightness-value').style.opacity = 1;
-                }
-                else {
-                    $('brightness-value').style.opacity = 0;
-                }
-                applyFilter(5, this.checked && new f.Brightness({
-                    brightness: parseInt($('brightness-value').value, 10)
-                }));
-            };
-            $('brightness-value').onchange = function () {
-                applyFilterValue(5, 'brightness', parseInt(this.value, 10));
-            };
-            $('noise').onclick = function () {
-
-                if (this.checked) {
-                    $('noise-value').style.opacity = 1;
-                }
-                else {
-                    $('noise-value').style.opacity = 0;
-                }
-
-                applyFilter(6, this.checked && new f.Noise({
-                    noise: parseInt($('noise-value').value, 10)
-                }));
-            };
-            $('noise-value').onchange = function () {
-                applyFilterValue(6, 'noise', parseInt(this.value, 10));
-            };*/
-
+            var url = '/users/<%= @user.id %>/uploads/update';
+            var sendable = {'public_id': imageID, 'new_url': newURL};
+            $.ajax({
+            type: "POST",
+            url: url,
+            dataType: 'json',
+            data: sendable
+            });
+        },
+        
+      onError: function(errorObj) {
+          alert(errorObj.message);
+      }
+    });
+    function launchEditor(id, src) {
+        featherEditor.launch({
+            image: id,
+            url: src
+        });
+        return false;
+    }
 </script>

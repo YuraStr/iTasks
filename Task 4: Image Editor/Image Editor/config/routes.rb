@@ -12,4 +12,8 @@ Rails.application.routes.draw do
   end
 
   root "users#index"
+
+  get 'application/save_image' => 'application#save_image', as: :save_image
+
+  match 'users/:user_id/uploads/update' => 'uploads#update', :via => :post
 end
